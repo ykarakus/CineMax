@@ -2,7 +2,7 @@ package cinemax.Handlers;
 
 import java.util.Scanner;
 
-import cinemax.Helpers.ConsoleColor;
+import cinemax.Helpers.ColoreConsole;
 import cinemax.Managers.UtenteManager;
 import cinemax.Models.Ruolo;
 
@@ -32,7 +32,7 @@ public class AuthHandler {
 		String password = input.nextLine();
 
 		if (utenteManager.login(username, password)) {
-			System.out.println(ConsoleColor.welcome("Benvenuto/a " + username + "!"));
+			System.out.println(ColoreConsole.benvenuto("Benvenuto/a " + username + "!"));
 			visualizzaMenu();
 			utenteManager.logout(); // Clean logout when menu returns
 		} else {
@@ -58,7 +58,7 @@ public class AuthHandler {
 		String domicilio = input.nextLine();
 
 		if (utenteManager.registrazione(nome, cognome, username, password, datanascita, domicilio)) {
-			System.out.println(ConsoleColor.welcome("Benvenuto/a " + username + "!"));
+			System.out.println(ColoreConsole.benvenuto("Benvenuto/a " + username + "!"));
 			visualizzaMenu();
 			utenteManager.logout(); // Clean logout when menu returns
 		} else {

@@ -107,7 +107,7 @@ public class Cinema {
      */
     public int getPostiDisponibili(Proiezione proiezione) {
 
-        return capienza - proiezione.getPosti_prenotati();
+        return capienza - proiezione.getPostiPrenotati();
     }
 
     /**

@@ -74,7 +74,7 @@ public class Prenotazione {
      * @return costo totale della prenotazione
      */
     public double getCostoTotale() {
-        return numeroBiglietti * proiezione.getCosto_biglietto();
+        return numeroBiglietti * proiezione.getCostoBiglietto();
     }
 
     /**

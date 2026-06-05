@@ -17,24 +17,24 @@ public class Proiezione {
     private static final int CAPIENZA = 200;
 
     private Film film;
-    private Date  data_ora;
-    private Double costo_biglietto;
-    private int posti_prenotati = 0;
+    private Date  dataOra;
+    private Double costoBiglietto;
+    private int postiPrenotati = 0;
 
     public Proiezione() {
     }
 
-    public Proiezione(Film film, Date data_ora, Double costo_biglietto) {
+    public Proiezione(Film film, Date dataOra, Double costoBiglietto) {
         this.film = film;
-        this.data_ora = data_ora;
-        this.costo_biglietto = costo_biglietto;
+        this.dataOra = dataOra;
+        this.costoBiglietto = costoBiglietto;
     }
 
-    public Proiezione(Film film, Date data_ora, Double costo_biglietto, int posti_prenotati) {
+    public Proiezione(Film film, Date dataOra, Double costoBiglietto, int postiPrenotati) {
         this.film = film;
-        this.data_ora = data_ora;
-        this.costo_biglietto = costo_biglietto;
-        this.posti_prenotati = posti_prenotati;
+        this.dataOra = dataOra;
+        this.costoBiglietto = costoBiglietto;
+        this.postiPrenotati = postiPrenotati;
     }
 
     /**
@@ -50,13 +50,13 @@ public class Proiezione {
 
         this.film = film;
     }
-    public Date getData_ora() {
+    public Date getDataOra() {
 
-        return data_ora;
+        return dataOra;
     }
-    public void setData_ora(Date data_ora) {
+    public void setDataOra(Date dataOra) {
 
-        this.data_ora = data_ora;
+        this.dataOra = dataOra;
     }
 
     /**
@@ -64,23 +64,23 @@ public class Proiezione {
      *
      * @return costo del biglietto
      */
-    public Double getCosto_biglietto() {
+    public Double getCostoBiglietto() {
 
-        return costo_biglietto;
+        return costoBiglietto;
     }
-    public void setCosto_biglietto(Double costo_biglietto) {
+    public void setCostoBiglietto(Double costoBiglietto) {
 
-        this.costo_biglietto = costo_biglietto;
-    }
-
-    public int getPosti_prenotati() {
-
-        return posti_prenotati;
+        this.costoBiglietto = costoBiglietto;
     }
 
-    public void setPosti_prenotati(int posti_prenotati) {
+    public int getPostiPrenotati() {
 
-        this.posti_prenotati = posti_prenotati;
+        return postiPrenotati;
+    }
+
+    public void setPostiPrenotati(int postiPrenotati) {
+
+        this.postiPrenotati = postiPrenotati;
     }
 
 
@@ -91,7 +91,7 @@ public class Proiezione {
      */
     public boolean hasPrenotazioni() {
 
-        return posti_prenotati > 0;
+        return postiPrenotati > 0;
     }
 
     /**
@@ -100,7 +100,7 @@ public class Proiezione {
      * @return numero di posti ancora disponibili
      */
     public int getNumeroPostiDisponibili() {
-        return CAPIENZA - posti_prenotati;
+        return CAPIENZA - postiPrenotati;
     }
 }
 

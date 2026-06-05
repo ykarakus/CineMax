@@ -1,8 +1,12 @@
 package cinemax.Handlers;
 
+import java.util.List;
 import java.util.Scanner;
 
 import cinemax.Managers.ProiezioneManager;
+import cinemax.Models.Proiezione;
+import cinemax.ViewModels.CriteriRicercaProiezione;
+import cinemax.Helpers.RicercaProiezioneConsoleHelper;
 
 public class GuestMenuHandler {
 	
@@ -37,7 +41,26 @@ public class GuestMenuHandler {
 	}
 	
 	private void gestisciRicercaProiezioni() {
-	
+		CriteriRicercaProiezione criteri = RicercaProiezioneConsoleHelper.acquisisciCriteriRicerca(scanner);
+		List<Proiezione> risultati = proiezioneManager.cercaProiezione(criteri);
+
+		if (risultati.isEmpty()) {
+			System.out.println("Nessuna proiezione trovata con i criteri selezionati.");
+			return;
+		}
+
+		RicercaProiezioneConsoleHelper.mostraRisultatiRicerca(risultati);
+		selezionaEVisualizzaProiezione(risultati);
+	}
+
+	private void selezionaEVisualizzaProiezione(List<Proiezione> risultati) {
+		Proiezione selezionata = RicercaProiezioneConsoleHelper.selezionaProiezione(
+				scanner,
+				risultati,
+				"\nSeleziona una proiezione per dettagli (0 per tornare): ");
+		if (selezionata != null) {
+			proiezioneManager.visualizzaProiezione(selezionata);
+		}
 	}
 
 }

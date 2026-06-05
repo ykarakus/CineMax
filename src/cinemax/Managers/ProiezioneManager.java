@@ -1,6 +1,7 @@
 package cinemax.Managers;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.stream.Collectors;
 import cinemax.Models.Proiezione;
 import cinemax.Models.Film;
 import cinemax.Helpers.*;
-import cinemax.ViewModels.ProiezioneSearch;
+import cinemax.ViewModels.CriteriRicercaProiezione;
 
 public class ProiezioneManager {
 
@@ -21,9 +22,9 @@ public class ProiezioneManager {
 		CSVReader csvReader = new CSVReader();
 
 		try {
-			// Read and parse the CSV file into Proiezione objects
+			// Leggi e fa il pasing di CSV file into oggetti di tipo Proiezione
 			this.proiezioni = csvReader.readFile("data/proiezioni.csv", values -> {
-				// CSV column mapping:
+				// CSV mapping delle colonne:
 				// 0: data_ora_proiezione
 				// 1: titolo_film
 				// 2: genere
@@ -33,10 +34,10 @@ public class ProiezioneManager {
 				// 6: eta_minima
 				// 7: prezzo_biglietto
 
-				// Parse the date/time
+				// Parse  data ora
 				Date dataOra = CSVReader.parseDate(values.get(0), "yyyy-MM-dd HH:mm:ss");
 
-				// Create Film object from CSV data
+				// Creazione dell'oggetto Film a partire dai dati del CSV
 				Film film = new Film(values.get(1), // titolo
 						values.get(2), // genere
 						values.get(3), // regista
@@ -59,34 +60,34 @@ public class ProiezioneManager {
 		}
 	}
 
-	public List<Proiezione> cercaProiezione(ProiezioneSearch proSearchCriteria) {
+	public List<Proiezione> cercaProiezione(CriteriRicercaProiezione criteriRicercaProiezione) {
 		try {
 			return proiezioni.stream().filter(proiezione -> {
-				// Filter 1: By title (if titolo is not null)
-				var titolo = proSearchCriteria.getTitolo();
+				// Filtro 1: Per titolo (se titolo non è null)
+				var titolo = criteriRicercaProiezione.getTitolo();
 				if (titolo != null && !titolo.trim().isEmpty()) {
-					boolean matchesTitle = proiezione.getFilm() != null && proiezione.getFilm().getTitolo() != null
+					boolean abbinaTitolo = proiezione.getFilm() != null && proiezione.getFilm().getTitolo() != null
 							&& proiezione.getFilm().getTitolo().trim().toLowerCase()
 									.contains(titolo.trim().toLowerCase());
-					if (!matchesTitle)
+					if (!abbinaTitolo)
 						return false;
 				}
 
-				// Filter 2: By tipologia/genre (if tipologia is not null)
-				var tipologia = proSearchCriteria.getTipologia();
+				// Filtro 2: Per tipologia/genere (se tipologia non è null)
+				var tipologia = criteriRicercaProiezione.getTipologia();
 				if (tipologia != null && !tipologia.trim().isEmpty()) {
-					boolean matchesTipologia = proiezione.getFilm() != null && proiezione.getFilm().getGenere() != null
+					boolean abbinaTipologia = proiezione.getFilm() != null && proiezione.getFilm().getGenere() != null
 							&& proiezione.getFilm().getGenere().trim().equalsIgnoreCase(tipologia.trim());
-					if (!matchesTipologia)
+					if (!abbinaTipologia)
 						return false;
 				}
 
-				// Filter 3: By date range (if dates are provided)
-				var dataInizio = proSearchCriteria.getData_inizio();
-				var dataFine = proSearchCriteria.getData_fine();
+				// Filtro 3: Per periodo data (se date disponibili)
+				var dataInizio = criteriRicercaProiezione.getDataInizio();
+				var dataFine = criteriRicercaProiezione.getDataFine();
 
 				if (dataInizio != null || dataFine != null) {
-					Date dataProiezione = proiezione.getData_ora();
+					Date dataProiezione = proiezione.getDataOra();
 					if (dataProiezione == null)
 						return false;
 
@@ -99,10 +100,10 @@ public class ProiezioneManager {
 					}
 				}
 
-				// Filter 4: By ticket price (if costoBiglietto is not null)
-				var costoBiglietto = proSearchCriteria.getCosto_biglietto();
+				// Filtro 4: Per prezzo del biglietto (se diverso da null)
+				var costoBiglietto = criteriRicercaProiezione.getCostoBiglietto();
 				if (costoBiglietto != null) {
-					Double costoProiezione = proiezione.getCosto_biglietto();
+					Double costoProiezione = proiezione.getCostoBiglietto();
 					if (costoProiezione == null)
 						return false;
 
@@ -115,7 +116,7 @@ public class ProiezioneManager {
 			}).collect(Collectors.toList());
 
 		} catch (Exception ex) {
-			System.err.println("Error searching for projections: " + ex.getMessage());
+			System.err.println("Errore nella ricerca di proiezioni: " + ex.getMessage());
 			return List.of();
 		}
 
@@ -150,7 +151,25 @@ public class ProiezioneManager {
 		}
 	}
 
-	public void vsualizzaProiezione() {
-			
+	public void visualizzaProiezione(Proiezione proiezione) {
+
+			if (proiezione == null || proiezione.getFilm() == null) {
+				System.out.println("Proiezione non valida.");
+				return;
+			}
+
+			SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+			Film film = proiezione.getFilm();
+
+			System.out.println("\n=== DETTAGLIO PROIEZIONE ===");
+			System.out.println("Titolo: " + film.getTitolo());
+			System.out.println("Genere: " + film.getGenere());
+			System.out.println("Regista: " + film.getRegista());
+			System.out.println("Anno: " + film.getAnno());
+			System.out.println("Durata: " + film.getDurata() + " min");
+			System.out.println("Data/Ora: " + dateTimeFormat.format(proiezione.getDataOra()));
+			System.out.printf("Costo biglietto: %.2f euro%n", proiezione.getCostoBiglietto());
+			System.out.println("Posti liberi: " + proiezione.getNumeroPostiDisponibili());
+				
 	}
 }
