@@ -33,12 +33,18 @@ public class PrenotazioneManager {
 
 	private UtenteManager utenteManager;
 	private ProiezioneManager proiezioneManager;
+
+	/**
+	 * Lista delle prenotazioni in memoria.
+	 * Le modifiche vengono tenute qui temporaneamente
+	 * e salvate su file solo quando si chiama salvaPrenotazioni().
+	 */
 	private ArrayList<Prenotazione> prenotazioni;
 
 	/**
 	 * Costruttore: inizializza la lista e carica le prenotazioni dal file CSV.
 	 *
-	 * @param utenteManager     manager degli utenti
+	 * @param utenteManager manager degli utenti
 	 * @param proiezioneManager manager delle proiezioni
 	 */
 	public PrenotazioneManager(UtenteManager utenteManager, ProiezioneManager proiezioneManager) {
@@ -53,7 +59,7 @@ public class PrenotazioneManager {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Legge il file CSV delle prenotazioni e riempe la lista.
+	 * Legge il file CSV delle prenotazioni e riempie la lista.
 	 * Il CSV usa ";" come separatore e ha questa intestazione:
 	 * codice;username;titolo_film;data_ora_proiezione;numero_biglietti
 	 *
@@ -62,7 +68,6 @@ public class PrenotazioneManager {
 	 */
 	private void caricaPrenotazioni() {
 
-		// Usiamo ";" come separatore per il file prenotazioni.csv
 		CSVReader lettoreCSV = new CSVReader(";", true);
 
 		try {
@@ -84,7 +89,7 @@ public class PrenotazioneManager {
 				if (utente == null) return null;
 
 				// Cerchiamo la proiezione corrispondente a titolo e data
-				Proiezione proiezione = trovaProiezione(titoloFilm,
+				Proiezione proiezione = proiezioneManager.trovaProiezione(titoloFilm,
 						CSVReader.parseDate(dataOraStr, FORMATO_DATA));
 				if (proiezione == null) return null;
 
@@ -121,18 +126,19 @@ public class PrenotazioneManager {
 	/**
 	 * Salva tutte le prenotazioni in memoria nel file CSV.
 	 * Sovrascrive il file esistente con i dati aggiornati.
+	 *
+	 * Questo metodo è public perché il salvataggio avviene
+	 * solo quando necessario. es. al logout, non ad ogni operazione.
 	 */
-	private void salvaPrenotazioni() {
+	public void salvaPrenotazioni() {
 
 		try {
-			// BufferedWriter apre il file e ci scrive dentro riga per riga
 			BufferedWriter scrittore = new BufferedWriter(new FileWriter(FILE_PRENOTAZIONI));
 
 			// Scriviamo l'intestazione del file
 			scrittore.write("codice;username;titolo_film;data_ora_proiezione;numero_biglietti");
 			scrittore.newLine();
 
-			// SimpleDateFormat converte la data in una stringa nel formato specificato
 			SimpleDateFormat sdf = new SimpleDateFormat(FORMATO_DATA);
 
 			// Scriviamo una prenotazione per riga
@@ -164,7 +170,7 @@ public class PrenotazioneManager {
 	 * Cerca un utente nella lista per username.
 	 *
 	 * @param username username da cercare
-	 * @return utente trovato, oppure null se non esiste
+	 * @return utente trovato oppure null se non esiste
 	 */
 	private Utente trovaUtentePerUsername(String username) {
 		for (int i = 0; i < utenteManager.getUtenti().size(); i++) {
@@ -175,22 +181,6 @@ public class PrenotazioneManager {
 		return null;
 	}
 
-	/**
-	 * Cerca una proiezione nella lista per titolo del film e data/ora.
-	 *
-	 * @param titoloFilm titolo del film
-	 * @param dataOra    data e ora della proiezione
-	 * @return proiezione trovata, oppure null se non esiste
-	 */
-	private Proiezione trovaProiezione(String titoloFilm, Date dataOra) {
-		for (int i = 0; i < proiezioneManager.proiezioni.size(); i++) {
-			Proiezione p = proiezioneManager.proiezioni.get(i);
-			if (p.getFilm().getTitolo().equals(titoloFilm) && p.getDataOra().equals(dataOra)) {
-				return p;
-			}
-		}
-		return null;
-	}
 
 	// -------------------------------------------------------------------------
 	// OPERAZIONI SULLE PRENOTAZIONI
@@ -203,7 +193,10 @@ public class PrenotazioneManager {
 	 * - ci siano abbastanza posti disponibili
 	 * - la data della proiezione sia futura
 	 *
-	 * @param proiezione      proiezione da prenotare
+	 * Le modifiche vengono tenute in memoria: chiamare salvaPrenotazioni()
+	 * per salvare su file.
+	 *
+	 * @param proiezione proiezione da prenotare
 	 * @param numeroBiglietti numero di biglietti richiesti
 	 * @return true se la prenotazione è andata a buon fine, false altrimenti
 	 */
@@ -229,19 +222,16 @@ public class PrenotazioneManager {
 			return false;
 		}
 
-		// Creiamo la prenotazione
-		// il codice univoco viene generato automaticamente
-		// nel costruttore di Prenotazione con System.currentTimeMillis()
+		// Creiamo la prenotazione — il codice univoco viene generato
+		// automaticamente nel costruttore di Prenotazione
 		Prenotazione prenotazione = new Prenotazione(utente, proiezione, numeroBiglietti);
 
 		// Aggiorniamo il numero di posti occupati nella proiezione
 		proiezione.setPostiPrenotati(proiezione.getPostiPrenotati() + numeroBiglietti);
 
 		// Aggiungiamo la prenotazione alla lista in memoria
+		// (non salviamo su file qui — si chiama salvaPrenotazioni() separatamente)
 		prenotazioni.add(prenotazione);
-
-		// Salviamo la lista aggiornata sul file CSV
-		salvaPrenotazioni();
 
 		System.out.println("Prenotazione creata! Codice: " + prenotazione.getCodice());
 		return true;
@@ -249,7 +239,6 @@ public class PrenotazioneManager {
 
 	/**
 	 * Restituisce la lista delle prenotazioni dell'utente attualmente loggato.
-	 * Scorre tutte le prenotazioni e restituisce solo quelle dell'utente corrente.
 	 *
 	 * @return lista di prenotazioni dell'utente corrente
 	 */
@@ -258,9 +247,7 @@ public class PrenotazioneManager {
 		Utente utente = utenteManager.getUtenteCorrente();
 		ArrayList<Prenotazione> miePrenotazioni = new ArrayList<>();
 
-		// Scorriamo tutte le prenotazioni con un ciclo for
 		for (int i = 0; i < prenotazioni.size(); i++) {
-			// Controlliamo se la prenotazione appartiene all'utente loggato
 			if (prenotazioni.get(i).getUtente().getUsername().equals(utente.getUsername())) {
 				miePrenotazioni.add(prenotazioni.get(i));
 			}
@@ -273,13 +260,15 @@ public class PrenotazioneManager {
 	 * Modifica una prenotazione cambiando la proiezione.
 	 * La modifica è consentita solo se sia la vecchia che la nuova data sono future.
 	 *
-	 * @param codice          codice della prenotazione da modificare
+	 * Le modifiche vengono tenute in memoria: chiamare salvaPrenotazioni()
+	 * per salvare su file.
+	 *
+	 * @param codice codice della prenotazione da modificare
 	 * @param nuovaProiezione nuova proiezione scelta
 	 * @return true se la modifica è andata a buon fine, false altrimenti
 	 */
 	public boolean modificaPrenotazione(String codice, Proiezione nuovaProiezione) {
 
-		// Cerchiamo la prenotazione con quel codice
 		Prenotazione prenotazione = trovaPerCodice(codice);
 		if (prenotazione == null) {
 			System.out.println("Prenotazione non trovata.");
@@ -315,9 +304,7 @@ public class PrenotazioneManager {
 		// Aggiorniamo la proiezione nella prenotazione
 		prenotazione.setProiezione(nuovaProiezione);
 
-		// Salviamo su file
-		salvaPrenotazioni();
-
+		// (non salviamo su file qui — si chiama salvaPrenotazioni() separatamente)
 		System.out.println("Prenotazione modificata con successo!");
 		return true;
 	}
@@ -326,12 +313,14 @@ public class PrenotazioneManager {
 	 * Elimina una prenotazione esistente.
 	 * L'eliminazione è consentita solo se la data della proiezione è futura.
 	 *
+	 * Le modifiche vengono tenute in memoria: chiamare salvaPrenotazioni()
+	 * per salvare su file.
+	 *
 	 * @param codice codice della prenotazione da eliminare
 	 * @return true se l'eliminazione è andata a buon fine, false altrimenti
 	 */
 	public boolean eliminaPrenotazione(String codice) {
 
-		// Cerchiamo la prenotazione con quel codice
 		Prenotazione prenotazione = trovaPerCodice(codice);
 		if (prenotazione == null) {
 			System.out.println("Prenotazione non trovata.");
@@ -351,9 +340,7 @@ public class PrenotazioneManager {
 		// Rimuoviamo la prenotazione dalla lista
 		prenotazioni.remove(prenotazione);
 
-		// Salviamo su file
-		salvaPrenotazioni();
-
+		// (non salviamo su file qui — si chiama salvaPrenotazioni() separatamente)
 		System.out.println("Prenotazione eliminata con successo!");
 		return true;
 	}
