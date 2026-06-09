@@ -1,6 +1,7 @@
 package cinemax.Managers;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -172,4 +173,98 @@ public class ProiezioneManager {
 			System.out.println("Posti liberi: " + proiezione.getNumeroPostiDisponibili());
 				
 	}
+	
+	   
+	   
+	public List<Proiezione> getProiezioniOrdinate() {
+	        if (proiezioni == null) {
+	            return List.of();
+	        }
+
+	        return proiezioni.stream()
+	                .filter(p -> p != null && p.getDataOra() != null)
+	                .sorted(Comparator.comparing(Proiezione::getDataOra))
+	                .toList();
+	    }
+
+	    public boolean aggiungiProiezione(Proiezione nuovaProiezione) {
+	        if (nuovaProiezione == null || nuovaProiezione.getFilm() == null || nuovaProiezione.getDataOra() == null
+	                || nuovaProiezione.getCostoBiglietto() == null || nuovaProiezione.getCostoBiglietto() < 0
+	                || nuovaProiezione.getFilm().getDurata() <= 0) {
+	            return false;
+	        }
+
+	        if (haSovrapposizione(nuovaProiezione, null)) {
+	            return false;
+	        }
+
+	        if (proiezioni == null) {
+	            proiezioni = new ArrayList<>();
+	        }
+
+	        proiezioni.add(nuovaProiezione);
+	        return true;
+	    }
+
+	    public boolean modificaProiezione(Proiezione proiezioneDaModificare, Film nuovoFilm, Date nuovaDataOra,
+	            Double nuovoCostoBiglietto) {
+	        if (proiezioneDaModificare == null || nuovoFilm == null || nuovaDataOra == null || nuovoCostoBiglietto == null
+	                || nuovoCostoBiglietto < 0 || nuovoFilm.getDurata() <= 0) {
+	            return false;
+	        }
+
+	        if (proiezioneDaModificare.hasPrenotazioni()) {
+	            return false;
+	        }
+
+	        Proiezione candidata = new Proiezione(nuovoFilm, nuovaDataOra, nuovoCostoBiglietto,
+	                proiezioneDaModificare.getPostiPrenotati());
+
+	        if (haSovrapposizione(candidata, proiezioneDaModificare)) {
+	            return false;
+	        }
+
+	        proiezioneDaModificare.setFilm(nuovoFilm);
+	        proiezioneDaModificare.setDataOra(nuovaDataOra);
+	        proiezioneDaModificare.setCostoBiglietto(nuovoCostoBiglietto);
+	        return true;
+	    }
+
+	    public boolean eliminaProiezione(Proiezione proiezioneDaEliminare) {
+	        if (proiezioneDaEliminare == null || proiezioni == null) {
+	            return false;
+	        }
+
+	        if (proiezioneDaEliminare.hasPrenotazioni()) {
+	            return false;
+	        }
+
+	        return proiezioni.remove(proiezioneDaEliminare);
+	    }
+
+	    private boolean haSovrapposizione(Proiezione nuovaProiezione, Proiezione daEscludere) {
+	        if (nuovaProiezione == null || nuovaProiezione.getDataOra() == null || nuovaProiezione.getFilm() == null
+	                || nuovaProiezione.getFilm().getDurata() <= 0 || proiezioni == null) {
+	            return false;
+	        }
+
+	        long nuovoInizio = nuovaProiezione.getDataOra().getTime();
+	        long nuovoFine = nuovoInizio + (long) nuovaProiezione.getFilm().getDurata() * 60_000L;
+
+	        for (Proiezione esistente : proiezioni) {
+	            if (esistente == null || esistente == daEscludere || esistente.getDataOra() == null || esistente.getFilm() == null
+	                    || esistente.getFilm().getDurata() <= 0) {
+	                continue;
+	            }
+
+	            long esistenteInizio = esistente.getDataOra().getTime();
+	            long esistenteFine = esistenteInizio + (long) esistente.getFilm().getDurata() * 60_000L;
+
+	            if (nuovoInizio < esistenteFine && nuovoFine > esistenteInizio) {
+	                return true;
+	            }
+	        }
+
+	        return false;
+	    }
 }
