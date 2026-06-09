@@ -267,4 +267,21 @@ public class ProiezioneManager {
 
 	        return false;
 	    }
+	    
+	    /**
+		 * Cerca una proiezione nella lista per titolo del film e data/ora.
+		 *
+		 * @param titoloFilm titolo del film
+		 * @param dataOra    data e ora della proiezione
+		 * @return proiezione trovata, oppure null se non esiste
+		 */
+		public Proiezione trovaProiezione(String titoloFilm, Date dataOra) {
+			for (int i = 0; i < this.proiezioni.size(); i++) {
+				Proiezione p = this.proiezioni.get(i);
+				if (p.getFilm().getTitolo().equals(titoloFilm) && p.getDataOra().equals(dataOra)) {
+					return p;
+				}
+			}
+			return null;
+		}
 }
