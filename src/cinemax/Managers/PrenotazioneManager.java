@@ -37,8 +37,6 @@ public class PrenotazioneManager {
 
 	/**
 	 * Lista delle prenotazioni in memoria.
-	 * Le modifiche vengono tenute qui temporaneamente
-	 * e salvate su file solo quando si chiama salvaPrenotazioni().
 	 */
 	private ArrayList<Prenotazione> prenotazioni;
 
@@ -148,8 +146,7 @@ public class PrenotazioneManager {
 	 * Salva tutte le prenotazioni in memoria nel file CSV.
 	 * Sovrascrive il file esistente con i dati aggiornati.
 	 *
-	 * Questo metodo è public perché il salvataggio avviene
-	 * solo quando necessario. es. al logout, non ad ogni operazione.
+	 * Viene chiamato automaticamente dopo ogni modifica.
 	 */
 	public void salvaPrenotazioni() {
 
@@ -214,9 +211,6 @@ public class PrenotazioneManager {
 	 * - ci siano abbastanza posti disponibili
 	 * - la data della proiezione sia futura
 	 *
-	 * Le modifiche vengono tenute in memoria: chiamare salvaPrenotazioni()
-	 * per salvare su file.
-	 *
 	 * @param proiezione proiezione da prenotare
 	 * @param numeroBiglietti numero di biglietti richiesti
 	 * @return true se la prenotazione è andata a buon fine, false altrimenti
@@ -251,9 +245,10 @@ public class PrenotazioneManager {
 		proiezione.setPostiPrenotati(proiezione.getPostiPrenotati() + numeroBiglietti);
 
 		// Aggiungiamo la prenotazione alla lista in memoria
-		// (non salviamo su file qui — si chiama salvaPrenotazioni() separatamente)
 		prenotazioni.add(prenotazione);
 
+		// Salviamo subito su file dopo ogni modifica
+		salvaPrenotazioni();
 		System.out.println("Prenotazione creata! Codice: " + prenotazione.getCodice());
 		return true;
 	}
@@ -280,9 +275,6 @@ public class PrenotazioneManager {
 	/**
 	 * Modifica una prenotazione cambiando la proiezione.
 	 * La modifica è consentita solo se sia la vecchia che la nuova data sono future.
-	 *
-	 * Le modifiche vengono tenute in memoria: chiamare salvaPrenotazioni()
-	 * per salvare su file.
 	 *
 	 * @param codice codice della prenotazione da modificare
 	 * @param nuovaProiezione nuova proiezione scelta
@@ -325,7 +317,8 @@ public class PrenotazioneManager {
 		// Aggiorniamo la proiezione nella prenotazione
 		prenotazione.setProiezione(nuovaProiezione);
 
-		// (non salviamo su file qui — si chiama salvaPrenotazioni() separatamente)
+		//salviamo subito su file dopo ogni modifica
+		salvaPrenotazioni();
 		System.out.println("Prenotazione modificata con successo!");
 		return true;
 	}
@@ -333,9 +326,6 @@ public class PrenotazioneManager {
 	/**
 	 * Elimina una prenotazione esistente.
 	 * L'eliminazione è consentita solo se la data della proiezione è futura.
-	 *
-	 * Le modifiche vengono tenute in memoria: chiamare salvaPrenotazioni()
-	 * per salvare su file.
 	 *
 	 * @param codice codice della prenotazione da eliminare
 	 * @return true se l'eliminazione è andata a buon fine, false altrimenti
@@ -361,7 +351,8 @@ public class PrenotazioneManager {
 		// Rimuoviamo la prenotazione dalla lista
 		prenotazioni.remove(prenotazione);
 
-		// (non salviamo su file qui — si chiama salvaPrenotazioni() separatamente)
+		//salviamo subito su file dopo ogni modifica per non perdere in caso di chiusura
+		salvaPrenotazioni();
 		System.out.println("Prenotazione eliminata con successo!");
 		return true;
 	}
