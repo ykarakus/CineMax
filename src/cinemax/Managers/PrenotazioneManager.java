@@ -12,6 +12,7 @@ import cinemax.Helpers.CSVReader;
 import cinemax.Models.Prenotazione;
 import cinemax.Models.Proiezione;
 import cinemax.Models.Utente;
+import cinemax.ViewModels.CriteriRicercaProiezione;
 
 /**
  * Gestisce le prenotazioni del sistema CineMax.
@@ -54,14 +55,18 @@ public class PrenotazioneManager {
 		caricaPrenotazioni();
 	}
 
-	// -------------------------------------------------------------------------
+	// ---------------------------------------------------------------------
 	// LETTURA / SCRITTURA FILE
-	// -------------------------------------------------------------------------
+	// ----------------------------------------------------------------------
 
 	/**
 	 * Legge il file CSV delle prenotazioni e riempie la lista.
 	 * Il CSV usa ";" come separatore e ha questa intestazione:
 	 * codice;username;titolo_film;data_ora_proiezione;numero_biglietti
+	 *
+	 * Per trovare la proiezione giusta usiamo cercaProiezione() da
+	 * ProiezioneManager. passiamo il titolo come criterio per poi
+	 * filtrare per data tra i risultati
 	 *
 	 * Se il file non esiste ancora non è un errore —
 	 * verrà creato automaticamente alla prima prenotazione.
@@ -88,9 +93,25 @@ public class PrenotazioneManager {
 				Utente utente = trovaUtentePerUsername(username);
 				if (utente == null) return null;
 
-				// Cerchiamo la proiezione corrispondente a titolo e data
-				Proiezione proiezione = proiezioneManager.trovaProiezione(titoloFilm,
-						CSVReader.parseDate(dataOraStr, FORMATO_DATA));
+				// Usiamo cercaProiezione() con il titolo come criterio di ricerca.
+				// CriteriRicercaProiezione è l'oggetto che raccoglie i criteri
+				// in questo caso impostiamo solo il titolo.
+				CriteriRicercaProiezione criteri = new CriteriRicercaProiezione();
+				criteri.setTitolo(titoloFilm);
+
+				// cercaProiezione() restituisce tutte le proiezioni con quel titolo
+				List<Proiezione> trovate = proiezioneManager.cercaProiezione(criteri);
+
+				// Tra i risultati cerchiamo quella con la data giusta
+				Date dataOra = CSVReader.parseDate(dataOraStr, FORMATO_DATA);
+				Proiezione proiezione = null;
+				for (int j = 0; j < trovate.size(); j++) {
+					if (trovate.get(j).getDataOra().equals(dataOra)) {
+						proiezione = trovate.get(j);
+						break;
+					}
+				}
+
 				if (proiezione == null) return null;
 
 				// Integer.parseInt() converte la stringa "3" nel numero intero 3
@@ -162,9 +183,9 @@ public class PrenotazioneManager {
 		}
 	}
 
-	// -------------------------------------------------------------------------
+	// ------------------------------------------------------------------
 	// METODI DI SUPPORTO
-	// -------------------------------------------------------------------------
+	// ------------------------------------------------------------------
 
 	/**
 	 * Cerca un utente nella lista per username.
@@ -182,9 +203,9 @@ public class PrenotazioneManager {
 	}
 
 
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------
 	// OPERAZIONI SULLE PRENOTAZIONI
-	// -------------------------------------------------------------------------
+	// -----------------------------------------------------------------
 
 	/**
 	 * Crea una nuova prenotazione per l'utente loggato.
