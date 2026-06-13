@@ -28,8 +28,7 @@ import cinemax.ViewModels.CriteriRicercaProiezione;
  * inclusa la ricerca, l'aggiunta, la modifica, l'eliminazione e la
  * visualizzazione delle proiezioni.
  * 
- * @author Cinemax Team
- * @version 1.0
+ * 
  */
 public class ProiezioneManager {
 
