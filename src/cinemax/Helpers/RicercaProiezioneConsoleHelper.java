@@ -99,8 +99,7 @@ public final class RicercaProiezioneConsoleHelper {
     
     /**
      * Stampa a console i risultati della ricerca di proiezione
-     * @param Lista di proiezioni
-     * @return 
+     * @param Lista di proiezioni 
      */
     public static void mostraRisultatiRicerca(List<Proiezione> risultati) {
         SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -211,8 +210,7 @@ public final class RicercaProiezioneConsoleHelper {
     
     /**
      * Stampa l'header con colore specifico 
-     * @param String
-     * @return 
+     * @param String 
      */
     private static void stampaHeader(String header) {
             System.out.println("\n" + ColoreConsole.header(header));
@@ -220,8 +218,7 @@ public final class RicercaProiezioneConsoleHelper {
 
     /**
      * Stampa l'errore con colore specifico
-     * @param String
-     * @return 
+     * @param String 
      */
     private static String formattaErrore(String message) {
         return ColoreConsole.errore(message);
