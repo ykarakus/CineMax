@@ -18,15 +18,24 @@ import java.util.Scanner;
 import cinemax.Models.Proiezione;
 import cinemax.ViewModels.CriteriRicercaProiezione;
 
+/**
+ * Classe di supporto per la ricerca delle proiezioni da console.
+ *
+ * Contiene metodi statici per acquisire i criteri di ricerca,
+ * mostrare i risultati e permettere all'utente di selezionare una proiezione.
+ */
 public final class RicercaProiezioneConsoleHelper {
 
     private RicercaProiezioneConsoleHelper() {
     }
 
     /**
-     * Leggi i criteri di ricerca per proiezione
-     * @param scanner
-     * @return CriteriRicercaProiezione - l'oggetto contenente tutti i criteri di ricerca
+     * Legge i criteri di ricerca per una proiezione.
+     * Chiede all'utente eventuali filtri su titolo, genere, data e costo del biglietto
+     * e restituisce un oggetto CriteriRicercaProiezione contenente i criteri inseriti.
+     *
+     * @param scanner scanner utilizzato per leggere l'input dell'utente
+     * @return oggetto CriteriRicercaProiezione contenente tutti i criteri di ricerca inseriti
      */
     public static CriteriRicercaProiezione acquisisciCriteriRicerca(Scanner scanner) {
         CriteriRicercaProiezione criteri = new CriteriRicercaProiezione();
@@ -99,7 +108,7 @@ public final class RicercaProiezioneConsoleHelper {
     
     /**
      * Stampa a console i risultati della ricerca di proiezione
-     * @param Lista di proiezioni 
+     * @param risultati lista di proiezioni da visualizzare
      */
     public static void mostraRisultatiRicerca(List<Proiezione> risultati) {
         SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -134,10 +143,12 @@ public final class RicercaProiezioneConsoleHelper {
     }
 
     /**
-     * Fa selezionare al cliente la proiezione dalla lista dei risultati
-     * @param Lista di proiezioni restituite applicando i filtri
-     * @param prompt per utente
-     * @return la proiezione selezionata
+     * Fa selezionare all'utente una proiezione dalla lista dei risultati.
+     *
+     * @param scanner scanner per leggere l'input dell'utente
+     * @param risultati lista di proiezioni restituite dalla ricerca
+     * @param prompt messaggio mostrato all'utente
+     * @return la proiezione selezionata, oppure null se l'utente sceglie 0
      */
     public static Proiezione selezionaProiezione(Scanner scanner, List<Proiezione> risultati, String prompt) {
         while (true) {
@@ -160,11 +171,12 @@ public final class RicercaProiezioneConsoleHelper {
     }
 
     /**
-     * Richiede al cliente di inserire una data in un certo formato e ritorna la stringa convertita in Data
-     * @param Scanner
-     * @param Prompt per utente
-     * @param Formato accettabile della data
-     * @return Data
+     * Richiede all'utente di inserire una data in un certo formato.
+     *
+     * @param scanner scanner per leggere l'input dell'utente
+     * @param prompt messaggio mostrato all'utente
+     * @param format formato accettato per la data
+     * @return la data inserita, oppure null se l'utente lascia vuoto
      */
     private static Date leggiData(Scanner scanner, String prompt, SimpleDateFormat format) {
         while (true) {
@@ -182,10 +194,12 @@ public final class RicercaProiezioneConsoleHelper {
     }
 
     /**
-     * Richiede al cliente di inserire un numero di tipo double e restituisce la stringa convertita in double
-     * @param Scanner
-     * @param Prompt per utente
-     * @return Double
+     * Richiede all'utente di inserire un numero decimale e lo converte in Double.
+     * Accetta sia il punto sia la virgola come separatore decimale.
+     *
+     * @param scanner scanner utilizzato per leggere l'input dell'utente
+     * @param prompt messaggio mostrato all'utente
+     * @return il valore decimale inserito, oppure null se l'utente lascia vuoto
      */
     private static Double leggiDouble(Scanner scanner, String prompt) {
         while (true) {
@@ -210,7 +224,7 @@ public final class RicercaProiezioneConsoleHelper {
     
     /**
      * Stampa l'header con colore specifico 
-     * @param String 
+     * @param header testo dell'intestazione da stampare
      */
     private static void stampaHeader(String header) {
             System.out.println("\n" + ColoreConsole.header(header));
@@ -218,7 +232,8 @@ public final class RicercaProiezioneConsoleHelper {
 
     /**
      * Stampa l'errore con colore specifico
-     * @param String 
+     * @param message messaggio di errore da formattare
+     * @return messaggio di errore formattato
      */
     private static String formattaErrore(String message) {
         return ColoreConsole.errore(message);

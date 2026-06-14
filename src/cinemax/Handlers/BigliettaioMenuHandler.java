@@ -16,12 +16,26 @@ import cinemax.Managers.PrenotazioneManager;
 import cinemax.Managers.UtenteManager;
 import cinemax.Models.Prenotazione;
 
+/**
+ * Gestisce il menu e le operazioni disponibili per l'utente con ruolo Bigliettaio.
+ *
+ * Permette di visualizzare le prenotazioni della data odierna
+ * e di cercare prenotazioni tramite codice, nome e cognome del cliente,
+ * titolo del film o intervallo di date.
+ */
 public class BigliettaioMenuHandler {
 
 	private Scanner scanner;
 	private UtenteManager utenteManager;
 	private PrenotazioneManager prenotazioneManager;
 
+	/**
+	 * Costruttore della classe BigliettaioMenuHandler.
+	 *
+	 * @param scanner scanner utilizzato per leggere l'input dell'utente
+	 * @param utenteManager manager per la gestione degli utenti
+	 * @param prenotazioneManager manager per la gestione delle prenotazioni
+	 */
 	public BigliettaioMenuHandler(Scanner scanner, UtenteManager utenteManager,
 	                              PrenotazioneManager prenotazioneManager) {
 		this.scanner = scanner;

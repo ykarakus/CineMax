@@ -14,7 +14,13 @@ import cinemax.Handlers.ClienteMenuHandler;
 import cinemax.Handlers.GuestMenuHandler;
 import cinemax.Handlers.ProiezionistaMenuHandler;
 import cinemax.Managers.*;
-
+/**
+ * Classe principale dell'applicazione CineMax.
+ *
+ * Contiene il metodo main e gestisce il menu principale
+ * da cui l'utente può effettuare login, registrazione,
+ * accesso come guest o chiusura del programma.
+ */
 public class CineMax {
 
 	private Scanner scanner = new Scanner(System.in);
@@ -30,6 +36,12 @@ public class CineMax {
 	private ProiezionistaMenuHandler proiezionistaMenuHandler;
 	private GuestMenuHandler guestMenuHandler;
 
+	/**
+	 * Costruttore della classe CineMax.
+	 *
+	 * Inizializza gli handler dei menu e collega i manager necessari
+	 * alla gestione di utenti, proiezioni e prenotazioni.
+	 */
 	public CineMax() {
 		this.clienteMenuHandler = new ClienteMenuHandler(scanner, utenteManager, prenotazioneManager,
 				proiezioneManager);
@@ -39,6 +51,11 @@ public class CineMax {
 		this.guestMenuHandler = new GuestMenuHandler(scanner, proiezioneManager);
 	}
 
+	/**
+	 * Metodo principale di avvio dell'applicazione.
+	 *
+	 * @param args argomenti passati da linea di comando
+	 */
 	public static void main(String[] args) {
 
 		new CineMax().start();

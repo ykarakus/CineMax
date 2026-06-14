@@ -52,8 +52,9 @@ public class CSVReader {
     /**
      * Legge un file CSV e converte ogni riga in un oggetto Java.
      *
+     * @param <T> tipo degli oggetti restituiti dalla lettura del file
      * @param percorsoFile percorso del file CSV da leggere
-     * @param mapper       funzione che converte una lista di valori in un oggetto
+     * @param mapper funzione che converte una lista di valori in un oggetto
      * @return lista di oggetti convertiti
      * @throws IOException se il file non esiste o non è leggibile
      */

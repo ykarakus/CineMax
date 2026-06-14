@@ -262,6 +262,7 @@ public class ProiezioneManager {
         System.out.println("Regista: " + film.getRegista());
         System.out.println("Anno: " + film.getAnno());
         System.out.println("Durata: " + film.getDurata() + " min");
+        System.out.println("Eta' minima:  " + film.getEta_minima() + " anni");
         System.out.println("Data/Ora: " + dateTimeFormat.format(proiezione.getDataOra()));
         System.out.printf("Costo biglietto: %.2f euro%n", proiezione.getCostoBiglietto());
         System.out.println("Posti liberi: " + proiezione.getNumeroPostiDisponibili());
