@@ -1,2 +1,2 @@
 # CineMax
-Lab A
+Lab B
