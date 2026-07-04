@@ -1,1 +1,190 @@
-/bin/
+# Compiled class files
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+target/
+build/
+out/
+
+# Maven specific
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Log files
+*.log
+logs/
+
+# IDE files
+## IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dataSources.xml
+.idea/dataSources.ids
+.idea/datasources.xml
+.idea/datasource-view.xml
+.idea/shelf/
+.idea/libraries/
+.idea/httpRequests/
+.idea/compiler.xml
+.idea/gradle.xml
+.idea/jarRepositories.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/aws.xml
+.idea/azureSettings.xml
+.idea/caches/
+.idea/artifacts/
+.idea/codeStyles/
+.idea/dictionary/
+.idea/encodings.xml
+.idea/errorProne.xml
+.idea/inspectionProfiles/
+.idea/markdown-navigator.xml
+.idea/markdown-navigator-enh.xml
+.idea/modules.xml
+.idea/sbt.xml
+.idea/scope/
+.idea/sqldialects.xml
+.idea/uiDesigner.xml
+.idea/workspace.xml
+
+## Eclipse
+.project
+.classpath
+.settings/
+bin/
+.metadata/
+*.prefs
+*.tmp
+*.log
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*.tmp
+
+## VS Code
+.vscode/
+.code-workspace
+*.code-workspace
+.history/
+*.vsix
+
+## NetBeans
+nbproject/
+nbactions.xml
+nb-configuration.xml
+build/
+dist/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+## Other IDEs
+*.swp
+*.swo
+*~
+.idea
+*.iml
+.factorypath
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+
+# Database files
+*.db
+*.sqlite
+*.h2.db
+*.mv.db
+*.trace.db
+
+# Database credentials or configuration
+application.properties
+application-dev.properties
+application-test.properties
+*.secret
+*.secrets
+*.key
+*.p12
+*.pem
+*.crt
+*.keyStore
+*.trustStore
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+*.env
+secrets.properties
+credentials.properties
+config.properties
+
+# Reports
+test-output/
+surefire-reports/
+failsafe-reports/
+test-reports/
+target/surefire-reports/
+*.html
+
+# Backups
+*.bak
+*.orig
+*.rej
+*~
+
+# Screenshots and media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.avi
+*.mov
+screenshots/
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Maven wrapper (optional - remove if you want to keep it in repo)
+# .mvn/wrapper/maven-wrapper.jar
+# .mvn/wrapper/maven-wrapper.properties
+
+# Generated files
+*.generated
+generated-sources/
+generated-test-sources/
