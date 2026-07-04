@@ -50,3 +50,14 @@ NOTE
 - Il programma deve essere avviato dalla cartella radice
   del progetto, altrimenti non trova i file dati
 ================================================================
+
+
+COMPILARE E ESEGUIRE LA SOLUTION:
+# Package entrambi i JAR
+mvn clean package
+
+# esegui server JAR
+java -jar target/serverCM.jar
+
+# esegui client JAR
+java -jar target/clientCM.jar
