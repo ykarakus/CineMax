@@ -12,27 +12,37 @@ import cinemax.common.Prenotazione;
 import cinemax.common.Proiezione;
 
 /**
- * Utility class con costanti SQL e metodi di mapping da {@link ResultSet}
- * agli oggetti del dominio, condivisi da tutti i service del server.
+ * Classe di utilita' con le costanti SQL e i metodi di conversione da
+ * {@link ResultSet} agli oggetti del dominio, condivisi da tutti i
+ * service del server.
+ *
+ * Il numero di posti liberi di una proiezione viene calcolato
+ * direttamente nella query come differenza tra la capienza della sala
+ * ({@link Proiezione#CAPIENZA_SALA}) e la somma dei posti gia'
+ * prenotati per quella proiezione, come richiesto dalle specifiche.
  */
 public final class DbHelper {
 
-    private DbHelper() {}
+    /** Costruttore privato: la classe offre solo membri statici. */
+    private DbHelper() {
+    }
 
     /**
-     * Fragment SELECT riusabile per le proiezioni.
-     * Espone alias: pid, fid, titolo, genere, regista, anno,
+     * Frammento SELECT riusabile per le proiezioni.
+     * Espone gli alias: pid, fid, titolo, genere, regista, anno,
      * durata_minuti, eta_minima, data_ora, prezzo_biglietto, posti_liberi.
+     * La capienza della sala e' presa dalla costante di dominio
+     * per evitare valori duplicati nel codice.
      */
     public static final String SQL_PROIEZIONE =
             "SELECT p.id AS pid, f.id AS fid, f.titolo, f.genere, f.regista, "
                     + "f.anno, f.durata_minuti, f.eta_minima, p.data_ora, p.prezzo_biglietto, "
-                    + "(200 - COALESCE((SELECT SUM(pr.num_posti) FROM prenotazione pr "
-                    + "  WHERE pr.proiezione_id = p.id), 0)) AS posti_liberi "
+                    + "(" + Proiezione.CAPIENZA_SALA + " - COALESCE((SELECT SUM(pr.num_posti) "
+                    + "  FROM prenotazione pr WHERE pr.proiezione_id = p.id), 0)) AS posti_liberi "
                     + "FROM proiezione p JOIN film f ON p.film_id = f.id ";
 
     /**
-     * Fragment SELECT riusabile per le prenotazioni.
+     * Frammento SELECT riusabile per le prenotazioni.
      * Espone, oltre alle colonne di {@link #SQL_PROIEZIONE}:
      * codice, username, nome_cliente, cognome_cliente, num_posti.
      */
@@ -40,8 +50,8 @@ public final class DbHelper {
             "SELECT pren.codice, pren.username, u.nome AS nome_cliente, u.cognome AS cognome_cliente, "
                     + "pren.num_posti, p.id AS pid, f.id AS fid, f.titolo, f.genere, f.regista, "
                     + "f.anno, f.durata_minuti, f.eta_minima, p.data_ora, p.prezzo_biglietto, "
-                    + "(200 - COALESCE((SELECT SUM(pr2.num_posti) FROM prenotazione pr2 "
-                    + "  WHERE pr2.proiezione_id = p.id), 0)) AS posti_liberi "
+                    + "(" + Proiezione.CAPIENZA_SALA + " - COALESCE((SELECT SUM(pr2.num_posti) "
+                    + "  FROM prenotazione pr2 WHERE pr2.proiezione_id = p.id), 0)) AS posti_liberi "
                     + "FROM prenotazione pren "
                     + "JOIN proiezione p ON pren.proiezione_id = p.id "
                     + "JOIN film f ON p.film_id = f.id "
