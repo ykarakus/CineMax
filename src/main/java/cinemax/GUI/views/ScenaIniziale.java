@@ -16,8 +16,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
 /**
  * Schermata principale (menu iniziale) dell'applicazione CineMax.
@@ -44,6 +47,13 @@ public class ScenaIniziale {
         VBox root = new VBox(28);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(40));
+
+        // ===== Logo =====
+        Circle cerchio = new Circle(44);
+        cerchio.setFill(Color.web("#EF5350"));
+        Text emoji = new Text("\uD83C\uDFAC");
+        emoji.setFont(Font.font(48));
+        StackPane logo = new StackPane(cerchio, emoji);
 
         Label lblTitolo = new Label("Benvenuto in CineMax");
         lblTitolo.setFont(Font.font("System", FontWeight.BOLD, 30));
@@ -121,7 +131,7 @@ public class ScenaIniziale {
         BorderPane.setMargin(btnServer, new Insets(0, 10, 8, 0));
         outerLayout.setBottom(btnServer);
 
-        root.getChildren().addAll(lblTitolo, boxLogin, boxGuest);
+        root.getChildren().addAll(logo, lblTitolo, boxLogin, boxGuest);
 
         // ===== Azioni =====
 

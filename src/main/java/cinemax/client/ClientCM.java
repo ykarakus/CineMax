@@ -60,7 +60,7 @@ public class ClientCM extends Application {
         primaryStage = stage;
         stage.setTitle("CineMax");
         stage.setMinWidth(700);
-        stage.setMinHeight(500);
+        stage.setMinHeight(700);
 
         // Schermata di caricamento mentre si tenta la connessione automatica
         VBox splash = new VBox(20);
