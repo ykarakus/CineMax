@@ -110,6 +110,17 @@ public class ScenaIniziale {
 
         boxGuest.getChildren().addAll(lblTitoloGuest, rigaFilm, sep, btnRegistrati);
 
+        // ===== Bottone configurazione server (in basso a destra) =====
+        Button btnServer = new Button("⚙ Configurazione server");
+        btnServer.setStyle("-fx-background-color: transparent; -fx-text-fill: #777777;"
+                + " -fx-font-size: 11; -fx-cursor: hand;");
+
+        BorderPane outerLayout = new BorderPane();
+        outerLayout.setCenter(root);
+        BorderPane.setAlignment(btnServer, Pos.BOTTOM_RIGHT);
+        BorderPane.setMargin(btnServer, new Insets(0, 10, 8, 0));
+        outerLayout.setBottom(btnServer);
+
         root.getChildren().addAll(lblTitolo, boxLogin, boxGuest);
 
         // ===== Azioni =====
@@ -130,7 +141,9 @@ public class ScenaIniziale {
 
         btnRegistrati.setOnAction(e -> ClientCM.mostraScena(new ScenaRegistrazione().costruisci()));
 
-        return new Scene(root, 700, 530);
+        btnServer.setOnAction(e -> ClientCM.mostraScena(new ScenaConnessione().costruisci()));
+
+        return new Scene(outerLayout, 700, 530);
     }
 
     /**
@@ -143,7 +156,7 @@ public class ScenaIniziale {
      * @param btnAccedi pulsante da disabilitare durante l'operazione
      */
     private void eseguiLogin(String username, String password,
-            Label lblErrore, Button btnAccedi) {
+                             Label lblErrore, Button btnAccedi) {
         if (username.isEmpty() || password.isEmpty()) {
             lblErrore.setText("Username e password sono obbligatori.");
             return;
@@ -171,11 +184,11 @@ public class ScenaIniziale {
                 // Navigazione al menu appropriato in base al ruolo
                 switch (utente.getRuolo()) {
                     case Utente.RUOLO_CLIENTE ->
-                        ClientCM.mostraScena(new ScenaMenuCliente(utente).costruisci());
+                            ClientCM.mostraScena(new ScenaMenuCliente(utente).costruisci());
                     case Utente.RUOLO_PROIEZIONISTA ->
-                        ClientCM.mostraScena(new ScenaMenuProiezionista(utente).costruisci());
+                            ClientCM.mostraScena(new ScenaMenuProiezionista(utente).costruisci());
                     case Utente.RUOLO_BIGLIETTAIO ->
-                        ClientCM.mostraScena(new ScenaMenuBigliettaio(utente).costruisci());
+                            ClientCM.mostraScena(new ScenaMenuBigliettaio(utente).costruisci());
                     default -> {
                         lblErrore.setText("Ruolo non riconosciuto: " + utente.getRuolo());
                         btnAccedi.setDisable(false);
