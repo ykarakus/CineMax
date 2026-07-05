@@ -47,6 +47,8 @@ public class PrenotazioneService {
      * Crea una nuova prenotazione per un cliente.
      * Usa una transazione con SELECT FOR UPDATE sulla proiezione
      * per serializzare gli accessi concorrenti ed evitare overbooking.
+     * Inoltre verifica che la proiezione sia futura: non è possibile
+     * prenotare proiezioni già passate.
      *
      * @param richiesta parametri: username, idProiezione (int), numPosti (int)
      * @return risposta con il codice univoco della prenotazione in caso di successo
@@ -56,47 +58,86 @@ public class PrenotazioneService {
         Object idObj    = richiesta.getParametro("idProiezione");
         Object postiObj = richiesta.getParametro("numPosti");
 
-        if (username == null || idObj == null || postiObj == null)
+        if (username == null || idObj == null || postiObj == null) {
             return new Risposta(false, "Parametri mancanti", null);
+        }
 
         int idProiezione = (int) idObj;
         int numPosti     = (int) postiObj;
 
+        if (numPosti <= 0) {
+            return new Risposta(false, "Il numero di posti deve essere maggiore di zero", null);
+        }
+
         try {
             conn.setAutoCommit(false);
 
-            // Blocca la riga della proiezione per serializzare l'accesso concorrente:
-            // un secondo client che tenta di prenotare la stessa proiezione rimane
-            // in attesa finche' questa transazione non termina.
+            /*
+             * Blocca la riga della proiezione per serializzare l'accesso concorrente.
+             * In questo modo due client non possono prenotare contemporaneamente
+             * gli stessi ultimi posti disponibili.
+             *
+             * Recuperiamo anche data_ora per impedire la prenotazione
+             * di proiezioni già passate.
+             */
             PreparedStatement lock = conn.prepareStatement(
-                    "SELECT id FROM proiezione WHERE id = ? FOR UPDATE");
+                    "SELECT id, data_ora FROM proiezione WHERE id = ? FOR UPDATE");
             lock.setInt(1, idProiezione);
+
             ResultSet rsLock = lock.executeQuery();
+
             if (!rsLock.next()) {
-                conn.rollback(); conn.setAutoCommit(true);
-                rsLock.close(); lock.close();
+                rsLock.close();
+                lock.close();
+                conn.rollback();
+                conn.setAutoCommit(true);
                 return new Risposta(false, "Proiezione non trovata", null);
             }
-            rsLock.close(); lock.close();
 
-            // Verifica posti disponibili (capienza - posti gia' prenotati)
-            PreparedStatement postiSt = conn.prepareStatement(
-                    "SELECT (" + Proiezione.CAPIENZA_SALA + " - COALESCE(SUM(num_posti), 0)) AS liberi "
-                            + "FROM prenotazione WHERE proiezione_id = ?");
-            postiSt.setInt(1, idProiezione);
-            ResultSet rsPosti = postiSt.executeQuery();
-            rsPosti.next();
-            int liberi = rsPosti.getInt("liberi");
-            rsPosti.close(); postiSt.close();
+            LocalDateTime dataProiezione =
+                    rsLock.getTimestamp("data_ora").toLocalDateTime();
 
-            if (numPosti > liberi) {
-                conn.rollback(); conn.setAutoCommit(true);
+            rsLock.close();
+            lock.close();
+
+            // Controllo fondamentale: non si possono prenotare proiezioni passate
+            if (!dataProiezione.isAfter(LocalDateTime.now())) {
+                conn.rollback();
+                conn.setAutoCommit(true);
                 return new Risposta(false,
-                        "Posti insufficienti: disponibili " + liberi + ", richiesti " + numPosti, null);
+                        "Non è possibile prenotare una proiezione già passata", null);
             }
 
-            // Genera codice univoco (8 caratteri uppercase)
-            String codice = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+            // Verifica posti disponibili: capienza sala - posti già prenotati
+            PreparedStatement postiSt = conn.prepareStatement(
+                    "SELECT (" + Proiezione.CAPIENZA_SALA
+                            + " - COALESCE(SUM(num_posti), 0)) AS liberi "
+                            + "FROM prenotazione WHERE proiezione_id = ?");
+            postiSt.setInt(1, idProiezione);
+
+            ResultSet rsPosti = postiSt.executeQuery();
+            rsPosti.next();
+
+            int liberi = rsPosti.getInt("liberi");
+
+            rsPosti.close();
+            postiSt.close();
+
+            if (numPosti > liberi) {
+                conn.rollback();
+                conn.setAutoCommit(true);
+                return new Risposta(false,
+                        "Posti insufficienti: disponibili " + liberi
+                                + ", richiesti " + numPosti,
+                        null);
+            }
+
+            // Genera codice univoco della prenotazione
+            String codice = UUID.randomUUID()
+                    .toString()
+                    .replace("-", "")
+                    .substring(0, 8)
+                    .toUpperCase();
 
             PreparedStatement ins = conn.prepareStatement(
                     "INSERT INTO prenotazione (codice, username, proiezione_id, num_posti) "
@@ -108,11 +149,22 @@ public class PrenotazioneService {
             ins.executeUpdate();
             ins.close();
 
-            conn.commit(); conn.setAutoCommit(true);
+            conn.commit();
+            conn.setAutoCommit(true);
+
             return new Risposta(true, "Prenotazione creata", codice);
+
         } catch (Exception e) {
-            try { conn.rollback(); conn.setAutoCommit(true); } catch (Exception ex) {}
-            return new Risposta(false, "Errore durante la prenotazione: " + e.getMessage(), null);
+            try {
+                conn.rollback();
+                conn.setAutoCommit(true);
+            } catch (Exception ex) {
+                // rollback best-effort
+            }
+
+            return new Risposta(false,
+                    "Errore durante la prenotazione: " + e.getMessage(),
+                    null);
         }
     }
 
