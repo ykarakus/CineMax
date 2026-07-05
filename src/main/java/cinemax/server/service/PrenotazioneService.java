@@ -27,7 +27,7 @@ import cinemax.common.Risposta;
  * Le operazioni che verificano la disponibilita' dei posti (creazione e
  * modifica) sono protette da una transazione con SELECT FOR UPDATE sulla
  * proiezione interessata: in questo modo gli accessi concorrenti di piu'
- * client vengono serializzati dal database e non e possibile superare
+ * client vengono serializzati dal database e non e' possibile superare
  * la capienza della sala (overbooking).
  */
 public class PrenotazioneService {
@@ -141,17 +141,19 @@ public class PrenotazioneService {
             }
 
             /*
-             * Regola della specifica (slide 12): la prenotazione e' consentita
-             * "a patto che il numero di posti richiesti sia MINORE del numero
-             * di posti disponibili". Il confronto e' quindi stretto (>=).
+             * La prenotazione e' consentita se i posti richiesti non superano
+             * quelli disponibili: e' quindi possibile prenotare anche tutti i
+             * posti rimasti, fino a riempire la sala (200 posti totali).
+             * Nota: la specifica usa la parola "minore"; si e' scelta
+             * l'interpretazione "minore o uguale" perche' la lettura letterale
+             * renderebbe l'ultimo posto della sala invendibile.
              */
-            if (numPosti >= liberi) {
+            if (numPosti > liberi) {
                 conn.rollback();
                 conn.setAutoCommit(true);
                 return new Risposta(false,
-                        "Il numero di posti richiesti (" + numPosti
-                                + ") deve essere inferiore ai posti disponibili ("
-                                + liberi + ")",
+                        "Posti insufficienti: disponibili " + liberi
+                                + ", richiesti " + numPosti,
                         null);
             }
 
@@ -222,7 +224,7 @@ public class PrenotazioneService {
      * Modifica la data di una prenotazione cercando una proiezione dello
      * stesso film nella nuova data.
      *
-     * Come da specifica, la modifica e consentita solo se sia la data
+     * Come da specifica, la modifica e' consentita solo se sia la data
      * attuale della proiezione che la nuova data sono successive a oggi.
      *
      * Come per la creazione, l'operazione avviene in una transazione con
@@ -300,12 +302,11 @@ public class PrenotazioneService {
             int liberi = rsPosti.getInt("liberi");
             rsPosti.close(); postiSt.close();
 
-            if (numPosti >= liberi) {
+            if (numPosti > liberi) {
                 conn.rollback(); conn.setAutoCommit(true);
                 return new Risposta(false,
-                        "Posti insufficienti nella nuova proiezione: i posti richiesti ("
-                                + numPosti + ") devono essere inferiori ai disponibili ("
-                                + liberi + ")", null);
+                        "Posti insufficienti nella nuova proiezione: disponibili "
+                                + liberi + ", richiesti " + numPosti, null);
             }
 
             PreparedStatement upd = conn.prepareStatement(
