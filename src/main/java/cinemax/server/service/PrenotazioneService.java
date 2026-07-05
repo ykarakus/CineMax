@@ -69,19 +69,23 @@ public class PrenotazioneService {
             return new Risposta(false, "Il numero di posti deve essere maggiore di zero", null);
         }
 
+        if (numPosti > Proiezione.CAPIENZA_SALA) {
+            return new Risposta(false,
+                    "Non è possibile prenotare più di " + Proiezione.CAPIENZA_SALA + " posti",
+                    null);
+        }
+
         try {
             conn.setAutoCommit(false);
 
             /*
-             * Blocca la riga della proiezione per serializzare l'accesso concorrente.
-             * In questo modo due client non possono prenotare contemporaneamente
-             * gli stessi ultimi posti disponibili.
-             *
-             * Recuperiamo anche data_ora per impedire la prenotazione
-             * di proiezioni già passate.
+             * Blocchiamo la proiezione scelta.
+             * Questo impedisce a due client di prenotare contemporaneamente
+             * superando la capienza.
              */
             PreparedStatement lock = conn.prepareStatement(
-                    "SELECT id, data_ora FROM proiezione WHERE id = ? FOR UPDATE");
+                    "SELECT id, data_ora FROM proiezione WHERE id = ? FOR UPDATE"
+            );
             lock.setInt(1, idProiezione);
 
             ResultSet rsLock = lock.executeQuery();
@@ -100,28 +104,47 @@ public class PrenotazioneService {
             rsLock.close();
             lock.close();
 
-            // Controllo fondamentale: non si possono prenotare proiezioni passate
             if (!dataProiezione.isAfter(LocalDateTime.now())) {
                 conn.rollback();
                 conn.setAutoCommit(true);
                 return new Risposta(false,
-                        "Non è possibile prenotare una proiezione già passata", null);
+                        "Non è possibile prenotare una proiezione già passata",
+                        null);
             }
 
-            // Verifica posti disponibili: capienza sala - posti già prenotati
+            /*
+             * Calcolo reale dei posti già prenotati per QUESTA proiezione.
+             * Non per film, non per titolo, ma per id della proiezione.
+             */
             PreparedStatement postiSt = conn.prepareStatement(
-                    "SELECT (" + Proiezione.CAPIENZA_SALA
-                            + " - COALESCE(SUM(num_posti), 0)) AS liberi "
-                            + "FROM prenotazione WHERE proiezione_id = ?");
+                    "SELECT COALESCE(SUM(num_posti), 0) AS prenotati "
+                            + "FROM prenotazione "
+                            + "WHERE proiezione_id = ?"
+            );
             postiSt.setInt(1, idProiezione);
 
             ResultSet rsPosti = postiSt.executeQuery();
             rsPosti.next();
 
-            int liberi = rsPosti.getInt("liberi");
+            int prenotati = rsPosti.getInt("prenotati");
+            int liberi = Proiezione.CAPIENZA_SALA - prenotati;
 
             rsPosti.close();
             postiSt.close();
+
+            System.out.println("DEBUG PRENOTAZIONE:");
+            System.out.println("idProiezione = " + idProiezione);
+            System.out.println("posti già prenotati = " + prenotati);
+            System.out.println("posti liberi = " + liberi);
+            System.out.println("posti richiesti = " + numPosti);
+
+            if (liberi <= 0) {
+                conn.rollback();
+                conn.setAutoCommit(true);
+                return new Risposta(false,
+                        "Posti esauriti per questa proiezione",
+                        null);
+            }
 
             if (numPosti > liberi) {
                 conn.rollback();
@@ -132,7 +155,6 @@ public class PrenotazioneService {
                         null);
             }
 
-            // Genera codice univoco della prenotazione
             String codice = UUID.randomUUID()
                     .toString()
                     .replace("-", "")
@@ -141,7 +163,8 @@ public class PrenotazioneService {
 
             PreparedStatement ins = conn.prepareStatement(
                     "INSERT INTO prenotazione (codice, username, proiezione_id, num_posti) "
-                            + "VALUES (?, ?, ?, ?)");
+                            + "VALUES (?, ?, ?, ?)"
+            );
             ins.setString(1, codice);
             ins.setString(2, username);
             ins.setInt(3, idProiezione);
@@ -159,7 +182,7 @@ public class PrenotazioneService {
                 conn.rollback();
                 conn.setAutoCommit(true);
             } catch (Exception ex) {
-                // rollback best-effort
+                // rollback best effort
             }
 
             return new Risposta(false,
