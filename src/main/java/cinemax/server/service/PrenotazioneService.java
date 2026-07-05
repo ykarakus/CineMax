@@ -27,7 +27,7 @@ import cinemax.common.Risposta;
  * Le operazioni che verificano la disponibilita' dei posti (creazione e
  * modifica) sono protette da una transazione con SELECT FOR UPDATE sulla
  * proiezione interessata: in questo modo gli accessi concorrenti di piu'
- * client vengono serializzati dal database e non e' possibile superare
+ * client vengono serializzati dal database e non e possibile superare
  * la capienza della sala (overbooking).
  */
 public class PrenotazioneService {
@@ -132,12 +132,6 @@ public class PrenotazioneService {
             rsPosti.close();
             postiSt.close();
 
-            System.out.println("DEBUG PRENOTAZIONE:");
-            System.out.println("idProiezione = " + idProiezione);
-            System.out.println("posti già prenotati = " + prenotati);
-            System.out.println("posti liberi = " + liberi);
-            System.out.println("posti richiesti = " + numPosti);
-
             if (liberi <= 0) {
                 conn.rollback();
                 conn.setAutoCommit(true);
@@ -146,12 +140,18 @@ public class PrenotazioneService {
                         null);
             }
 
-            if (numPosti > liberi) {
+            /*
+             * Regola della specifica (slide 12): la prenotazione e' consentita
+             * "a patto che il numero di posti richiesti sia MINORE del numero
+             * di posti disponibili". Il confronto e' quindi stretto (>=).
+             */
+            if (numPosti >= liberi) {
                 conn.rollback();
                 conn.setAutoCommit(true);
                 return new Risposta(false,
-                        "Posti insufficienti: disponibili " + liberi
-                                + ", richiesti " + numPosti,
+                        "Il numero di posti richiesti (" + numPosti
+                                + ") deve essere inferiore ai posti disponibili ("
+                                + liberi + ")",
                         null);
             }
 
@@ -222,7 +222,7 @@ public class PrenotazioneService {
      * Modifica la data di una prenotazione cercando una proiezione dello
      * stesso film nella nuova data.
      *
-     * Come da specifica, la modifica e' consentita solo se sia la data
+     * Come da specifica, la modifica e consentita solo se sia la data
      * attuale della proiezione che la nuova data sono successive a oggi.
      *
      * Come per la creazione, l'operazione avviene in una transazione con
@@ -268,7 +268,7 @@ public class PrenotazioneService {
             // Vincolo di specifica: anche la data attuale deve essere futura
             if (!dataAttuale.toLocalDate().isAfter(LocalDate.now())) {
                 conn.rollback(); conn.setAutoCommit(true);
-                return new Risposta(false, "La data corrente della proiezione e' gia' passata", null);
+                return new Risposta(false, "La modifica e' consentita solo per proiezioni con data successiva a oggi (come da specifica)", null);
             }
 
             // Trova una proiezione dello stesso film nella nuova data
@@ -300,10 +300,12 @@ public class PrenotazioneService {
             int liberi = rsPosti.getInt("liberi");
             rsPosti.close(); postiSt.close();
 
-            if (numPosti > liberi) {
+            if (numPosti >= liberi) {
                 conn.rollback(); conn.setAutoCommit(true);
                 return new Risposta(false,
-                        "Posti insufficienti nella nuova proiezione: disponibili " + liberi, null);
+                        "Posti insufficienti nella nuova proiezione: i posti richiesti ("
+                                + numPosti + ") devono essere inferiori ai disponibili ("
+                                + liberi + ")", null);
             }
 
             PreparedStatement upd = conn.prepareStatement(
@@ -345,9 +347,17 @@ public class PrenotazioneService {
             LocalDateTime dataOra = rs.getTimestamp("data_ora").toLocalDateTime();
             rs.close(); chk.close();
 
-            if (!dataOra.toLocalDate().isAfter(LocalDate.now()))
+            /*
+             * La cancellazione e' consentita finche' la proiezione non e'
+             * iniziata: il confronto avviene su data E ora, cosi' una
+             * prenotazione per una proiezione di oggi resta cancellabile
+             * fino all'orario di inizio. Nota: su questo punto la specifica
+             * e' ambigua ("data di proiezione precedente la data odierna"),
+             * si e' quindi adottata l'interpretazione piu' ragionevole.
+             */
+            if (!dataOra.isAfter(LocalDateTime.now()))
                 return new Risposta(false,
-                        "Non e' possibile cancellare una prenotazione per una proiezione passata", null);
+                        "Non e' possibile cancellare la prenotazione: la proiezione e' gia' iniziata o conclusa", null);
 
             PreparedStatement del = conn.prepareStatement(
                     "DELETE FROM prenotazione WHERE codice = ?");

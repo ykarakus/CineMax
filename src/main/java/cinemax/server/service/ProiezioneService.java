@@ -188,13 +188,19 @@ public class ProiezioneService {
             }
 
             // Verifica sovrapposizione temporale con proiezioni esistenti
+            /*
+             * La fine della nuova proiezione (inizio + durata) viene calcolata
+             * in Java: nei parametri JDBC restano solo TIMESTAMP, evitando le
+             * ambiguita' di tipo delle espressioni "? * interval" lato PostgreSQL.
+             * Sovrapposizione: esiste p tale che p.inizio < nuova.fine
+             * e p.fine > nuova.inizio.
+             */
             PreparedStatement ovlp = conn.prepareStatement(
                     "SELECT COUNT(*) FROM proiezione p JOIN film f ON p.film_id = f.id "
-                            + "WHERE p.data_ora < ? + (? * interval '1 minute') "
+                            + "WHERE p.data_ora < ? "
                             + "AND p.data_ora + (f.durata_minuti * interval '1 minute') > ?");
-            ovlp.setTimestamp(1, Timestamp.valueOf(dataOra));
-            ovlp.setInt(2, durata);
-            ovlp.setTimestamp(3, Timestamp.valueOf(dataOra));
+            ovlp.setTimestamp(1, Timestamp.valueOf(dataOra.plusMinutes(durata)));
+            ovlp.setTimestamp(2, Timestamp.valueOf(dataOra));
             ResultSet rsOvlp = ovlp.executeQuery();
             rsOvlp.next();
             int overlap = rsOvlp.getInt(1);
@@ -218,6 +224,12 @@ public class ProiezioneService {
             return new Risposta(true, "Proiezione aggiunta con successo", null);
         } catch (Exception e) {
             try { conn.rollback(); conn.setAutoCommit(true); } catch (Exception ex) {}
+            // Violazione del vincolo UNIQUE su data_ora: messaggio comprensibile
+            if (e instanceof java.sql.SQLException
+                    && "23505".equals(((java.sql.SQLException) e).getSQLState())) {
+                return new Risposta(false,
+                        "Esiste gia' una proiezione con la stessa data e ora", null);
+            }
             return new Risposta(false, "Errore aggiunta proiezione: " + e.getMessage(), null);
         }
     }
@@ -264,15 +276,15 @@ public class ProiezioneService {
             rsDur.close(); durSt.close();
 
             // Verifica sovrapposizione (esclude la proiezione stessa)
+            // Fine calcolata in Java: solo TIMESTAMP nei parametri (vedi aggiungiProiezione)
             PreparedStatement ovlp = conn.prepareStatement(
                     "SELECT COUNT(*) FROM proiezione p JOIN film f ON p.film_id = f.id "
                             + "WHERE p.id != ? "
-                            + "AND p.data_ora < ? + (? * interval '1 minute') "
+                            + "AND p.data_ora < ? "
                             + "AND p.data_ora + (f.durata_minuti * interval '1 minute') > ?");
             ovlp.setInt(1, id);
-            ovlp.setTimestamp(2, Timestamp.valueOf(nuovaDataOra));
-            ovlp.setInt(3, durata);
-            ovlp.setTimestamp(4, Timestamp.valueOf(nuovaDataOra));
+            ovlp.setTimestamp(2, Timestamp.valueOf(nuovaDataOra.plusMinutes(durata)));
+            ovlp.setTimestamp(3, Timestamp.valueOf(nuovaDataOra));
             ResultSet rsOvlp = ovlp.executeQuery();
             rsOvlp.next();
             if (rsOvlp.getInt(1) > 0) {
