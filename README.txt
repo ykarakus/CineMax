@@ -1,63 +1,111 @@
 ================================================================
-CineMax - Sistema di Gestione Cinema
-Laboratorio Interdisciplinare A - a.a. 2025/2026
-Università degli Studi dell'Insubria
+ CineMax - Laboratorio Interdisciplinare B - a.a. 2025/2026
 ================================================================
 
-REQUISITI
+Autori:
+- Karakus Yasemin, matricola 762746, sede VA
+- Choudhry Maha Ilyas, matricola 747119, sede VA
+
+Descrizione
+-----------
+CineMax e' una piattaforma client/server per la gestione di un cinema
+monosala da 200 posti. Permette ai clienti di cercare proiezioni e
+prenotare posti, ai proiezionisti di gestire il palinsesto e ai
+bigliettai di consultare le prenotazioni.
+
+La piattaforma e' composta da due moduli:
+- serverCM: back-end che si interfaccia con il database PostgreSQL
+  e serve piu' client in parallelo (un thread per client)
+- clientCM: applicazione desktop con interfaccia grafica JavaFX
+
+Requisiti
 ---------
-- Java JDK 17 o superiore
-  Download: https://adoptium.net/
+- Java JDK 21 o superiore
+- Apache Maven 3.8 o superiore
+- PostgreSQL (testato con la versione 18)
 
-VERIFICA INSTALLAZIONE JAVA
-----------------------------
-Aprire il terminale e digitare:
-  java -version
-Deve apparire una versione 17 o superiore.
+Struttura del repository
+------------------------
+- src/   codice sorgente (package cinemax)
+- doc/   manuale utente, manuale tecnico, diagrammi ER/UML, javadoc
+- bin/   eseguibili serverCM.jar e clientCM.jar
+- lib/   (vuota: le dipendenze sono gestite da Maven, vedere pom.xml)
+- data/  script SQL e file CSV per la creazione del database
+- pom.xml  build Maven del progetto
 
-STRUTTURA DEL PROGETTO
------------------------
-  CineMax/
-  ├── autori.txt
-  ├── README.txt
-  ├── bin/          -> file eseguibile (.jar)
-  ├── data/         -> file dati CSV
-  ├── doc/          -> manuali e javadoc
-  └── src/          -> codice sorgente
+1) Creazione del database
+-------------------------
+Creare un database vuoto chiamato "dbcm":
 
-AVVIO TRAMITE JAR (consigliato)
---------------------------------
-1. Aprire il terminale
-2. Spostarsi nella cartella del progetto:
-   cd percorso/CineMax
-3. Avviare il programma:
-   java -jar bin/CineMax.jar
+    psql -U postgres -h localhost -c "CREATE DATABASE dbcm;"
 
-COMPILAZIONE DAI SORGENTI
---------------------------
-1. Aprire il terminale
-2. Spostarsi nella cartella del progetto:
-   cd percorso/CineMax
-3. Compilare:
-   javac -d bin/classes src/cinemax/*.java src/cinemax/**/*.java
-4. Avviare:
-   java -cp bin/classes cinemax.CineMax
+Posizionarsi nella cartella data/ ed eseguire nell'ordine:
 
-NOTE
+    cd data
+    psql -U postgres -h localhost -d dbcm -f crea_database.sql
+    psql -U postgres -h localhost -d dbcm -f migra_dati_laba.sql
+
+Il primo script crea le tabelle (film, proiezione, utenti,
+prenotazione), gli utenti predefiniti (2 proiezionisti e 5 bigliettai)
+e importa il palinsesto dal file proiezioni.csv (8878 proiezioni,
+725 film). Il secondo script inserisce due clienti di prova e alcune
+prenotazioni di esempio.
+
+NOTA: lo script usa il comando \copy con percorso relativo, quindi va
+eseguito dalla cartella data/ (dove si trova proiezioni.csv).
+
+2) Compilazione
+---------------
+Dalla radice del progetto:
+
+    mvn clean package
+
+Il comando compila il progetto e genera in target/ i due eseguibili:
+- serverCM.jar
+- clientCM.jar
+(copie dei JAR sono gia' presenti nella cartella bin/)
+
+Per generare la documentazione javadoc:
+
+    mvn javadoc:javadoc
+
+(output in target/site/apidocs, copia in doc/javadoc)
+
+3) Esecuzione
+-------------
+Avviare PRIMA il server, che chiede all'avvio l'host del database e
+le credenziali di accesso a PostgreSQL:
+
+    java -jar bin/serverCM.jar
+
+    Host del database [localhost]:  (invio per localhost)
+    Username del database:          postgres
+    Password del database:          <password scelta all'installazione>
+
+Quando compare "Server in ascolto sulla porta 4444" avviare uno o
+piu' client (anche su computer diversi):
+
+    java -jar bin/clientCM.jar
+
+Il client si connette automaticamente a localhost:4444; se il server
+si trova su un altro host, l'indirizzo puo' essere indicato nella
+schermata di connessione.
+
+Credenziali di prova
+--------------------
+Proiezionisti:  proiez1 / proiez1123    proiez2 / proiez2123
+Bigliettai:     bigl1 / bigl1123  ...  bigl5 / bigl5123
+Clienti:        test / test             mch / 1234
+
+E' inoltre possibile registrare nuovi clienti dalla schermata
+iniziale dell'applicazione.
+
+Note
 ----
-- I file dati (proiezioni.csv, utenti.csv, prenotazioni.csv)
-  devono trovarsi nella cartella data/
-- Il programma deve essere avviato dalla cartella radice
-  del progetto, altrimenti non trova i file dati
-================================================================
-
-
-COMPILARE E ESEGUIRE LA SOLUTION:
-# Package entrambi i JAR
-mvn clean package
-
-# esegui server JAR
-java -jar target/serverCM.jar
-
-# esegui client JAR
-java -jar target/clientCM.jar
+- Le dipendenze esterne (driver JDBC PostgreSQL, librerie JavaFX)
+  sono dichiarate nel pom.xml e vengono scaricate automaticamente
+  da Maven; i JAR eseguibili le includono gia' al loro interno e
+  sono multipiattaforma (macOS Intel/Apple Silicon, Windows, Linux).
+- La porta TCP del server e' la 4444.
+- Le password degli utenti sono cifrate nel database con BCrypt
+  (estensione pgcrypto di PostgreSQL).

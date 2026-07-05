@@ -14,7 +14,7 @@
 
     <properties>
         <!-- maven.compiler.release garantisce la stessa compilazione
-             su qualunque IDE (IntelliJ, Eclipse) e da linea di comando -->
+             su qualunque IDE e da linea di comando -->
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.5</javafx.version>
@@ -28,8 +28,15 @@
             <version>42.7.4</version>
         </dependency>
 
-        <!-- JavaFX: si includono le librerie native di tutte le piattaforme
-             per soddisfare il requisito di multipiattaforma del JAR client -->
+        <!-- ============================================================
+             JavaFX: per soddisfare il requisito di multipiattaforma dei
+             JAR eseguibili si includono le librerie native di TUTTE le
+             piattaforme (macOS Intel e Apple Silicon, Windows, Linux)
+             per ciascuno dei tre moduli richiesti:
+             controls (+ le sue dipendenze graphics e base).
+             ============================================================ -->
+
+        <!-- javafx-controls -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -59,41 +66,62 @@
             <version>${javafx.version}</version>
             <classifier>linux</classifier>
         </dependency>
+
+        <!-- javafx-graphics -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>mac-aarch64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>mac</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>win</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>linux</classifier>
+        </dependency>
+
+        <!-- javafx-base -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>mac-aarch64</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>mac</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>win</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>linux</classifier>
+        </dependency>
     </dependencies>
 
     <build>
         <finalName>cinemax</finalName>
-
-        <!-- Configurazione per la compatibilita' con Eclipse (m2e):
-             indica al plugin Maven di Eclipse di ignorare l'esecuzione
-             dello shade plugin durante la build incrementale dell'IDE.
-             Lo shade plugin resta attivo nella build da linea di comando
-             (mvn package), che e' quella usata per generare i JAR. -->
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-shade-plugin</artifactId>
-                                        <versionRange>[3.0.0,)</versionRange>
-                                        <goals><goal>shade</goal></goals>
-                                    </pluginExecutionFilter>
-                                    <action><ignore /></action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
         <plugins>
 
             <!-- Esecuzione rapida della GUI durante lo sviluppo: mvn javafx:run -->

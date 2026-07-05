@@ -1,6 +1,5 @@
-cinemax
-cinemax.Handlers
-cinemax.Helpers
-cinemax.Managers
-cinemax.Models
-cinemax.ViewModels
+cinemax.client
+cinemax.common
+cinemax.GUI.views
+cinemax.server
+cinemax.server.service
