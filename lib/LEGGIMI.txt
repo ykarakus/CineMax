@@ -1,0 +1,5 @@
+Questa cartella e vuota perche le dipendenze esterne del progetto
+(driver JDBC PostgreSQL e librerie JavaFX) sono gestite da Maven e
+dichiarate nel file pom.xml: vengono scaricate automaticamente in
+fase di compilazione. I JAR eseguibili nella cartella bin/ le
+includono gia al loro interno.
