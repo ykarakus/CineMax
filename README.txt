@@ -6,6 +6,8 @@ Autori:
 - Karakus Yasemin, matricola 762746, sede VA
 - Choudhry Maha Ilyas, matricola 747119, sede VA
 
+Repository: https://github.com/ykarakus/CineMax
+
 Descrizione
 -----------
 CineMax e' una piattaforma client/server per la gestione di un cinema
@@ -21,7 +23,7 @@ La piattaforma e' composta da due moduli:
 Requisiti
 ---------
 - Java JDK 21 o superiore
-- Apache Maven 3.8 o superiore
+- Apache Maven 3.8 o superiore (solo per ricompilare il progetto)
 - PostgreSQL (testato con la versione 18)
 
 Struttura del repository
@@ -44,15 +46,18 @@ Posizionarsi nella cartella data/ ed eseguire nell'ordine:
     cd data
     psql -U postgres -h localhost -d dbcm -f crea_database.sql
     psql -U postgres -h localhost -d dbcm -f migra_dati_laba.sql
+    psql -U postgres -h localhost -d dbcm -f vincolo_capienza.sql
 
 Il primo script crea le tabelle (film, proiezione, utenti,
 prenotazione), gli utenti predefiniti (2 proiezionisti e 5 bigliettai)
 e importa il palinsesto dal file proiezioni.csv (8878 proiezioni,
-725 film). Il secondo script inserisce due clienti di prova e alcune
-prenotazioni di esempio.
+725 film). Il secondo inserisce due clienti di prova e alcune
+prenotazioni di esempio. Il terzo installa il trigger che impedisce,
+a livello di database, il superamento della capienza della sala.
 
-NOTA: lo script usa il comando \copy con percorso relativo, quindi va
-eseguito dalla cartella data/ (dove si trova proiezioni.csv).
+NOTA: lo script crea_database.sql usa il comando \copy con percorso
+relativo, quindi va eseguito dalla cartella data/ (dove si trova
+proiezioni.csv).
 
 2) Compilazione
 ---------------
@@ -69,7 +74,7 @@ Per generare la documentazione javadoc:
 
     mvn javadoc:javadoc
 
-(output in target/site/apidocs, copia in doc/javadoc)
+(output in target/reports/apidocs, copia in doc/javadoc)
 
 3) Esecuzione
 -------------
@@ -109,3 +114,6 @@ Note
 - La porta TCP del server e' la 4444.
 - Le password degli utenti sono cifrate nel database con BCrypt
   (estensione pgcrypto di PostgreSQL).
+- Per la ricerca come guest si consiglia di provare titoli con
+  proiezioni nei tre mesi successivi alla data odierna
+  (es. "Star Wars", "Funny Games").
